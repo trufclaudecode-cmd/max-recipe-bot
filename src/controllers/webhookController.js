@@ -1,5 +1,5 @@
 // src/controllers/webhookController.js
-import { askGemini } from '../services/geminiService.js';
+import { askGroq } from '../services/groqService.js';
 import { sendMessage } from '../services/maxService.js';
 import { logger } from '../utils/logger.js';
 import { config } from '../config/index.js';
@@ -22,7 +22,7 @@ export const handleWebhook = async (req, res) => {
   logger.info('Incoming message', { userId, chatId, textLength: text.length });
 
   try {
-    const reply = await askGemini(text);
+    const reply = await askGroq(text);
     await sendMessage(chatId, reply);
     logger.info('Reply sent', { userId, chatId });
   } catch (err) {
