@@ -2,7 +2,7 @@ import { config } from '../config/index.js';
 import { withRetry } from '../utils/retry.js';
 import { logger } from '../utils/logger.js';
 
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${config.geminiModel}:generateContent?key=${config.geminiApiKey}`;
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${config.geminiModel}:generateContent`;
 
 const SYSTEM_PROMPT = `You are an AI food assistant for a food store.
 Help users with recipes and cooking.
@@ -36,7 +36,10 @@ export const askGemini = async (userMessage) => {
       try {
         const response = await fetch(GEMINI_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': config.geminiApiKey,
+          },
           body: JSON.stringify(buildRequest(userMessage)),
           signal: controller.signal,
         });

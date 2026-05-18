@@ -18,14 +18,14 @@ const shutdown = (signal) => {
   setTimeout(() => {
     logger.error('Forced shutdown after timeout');
     process.exit(1);
-  }, 10000);
+  }, 10000).unref();
 };
 
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
 
 process.on('unhandledRejection', (reason) => {
-  logger.error('Unhandled promise rejection', { reason: String(reason) });
+  logger.error('Unhandled promise rejection', { reason: reason?.stack ?? String(reason) });
 });
 
 process.on('uncaughtException', (err) => {

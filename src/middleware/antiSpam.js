@@ -2,6 +2,7 @@
 import { config } from '../config/index.js';
 import { logger } from '../utils/logger.js';
 
+// In-memory state — single instance only. Multiple replicas will have independent state.
 const userLastMessage = new Map();
 const userLastTime = new Map();
 
