@@ -1,6 +1,6 @@
 # MAX Recipe Bot
 
-AI-powered recipe bot for MAX messenger using Google Gemini 1.5 Flash.
+AI-powered recipe bot for MAX messenger using Groq API (mixtral-8x7b-32768).
 
 ## Quick Start
 
@@ -39,18 +39,18 @@ curl http://localhost:3000/health
 |----------|----------|-------------|
 | `PORT` | No (default: 3000) | Server port |
 | `NODE_ENV` | No | `development` or `production` |
-| `GEMINI_API_KEY` | Yes | Google Gemini API key |
+| `GROQ_API_KEY` | Yes | Groq API key |
 | `MAX_BOT_TOKEN` | Yes | MAX Bot API access token |
 | `MAX_WEBHOOK_SECRET` | No | Webhook verification secret |
 
 ---
 
-## Gemini API Setup
+## Groq API Setup
 
-1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey)
+1. Go to [Groq Console](https://console.groq.com/keys)
 2. Create a new API key
-3. Copy key to `GEMINI_API_KEY` in `.env`
-4. Free tier: 15 RPM, 1 million TPM
+3. Copy key to `GROQ_API_KEY` in `.env`
+4. Free tier: 30 RPM, 14,400 RPD on mixtral-8x7b-32768
 
 ---
 
