@@ -19,7 +19,7 @@ setInterval(() => {
 
 export const antiSpam = (req, res, next) => {
   const userId = req.body?.message?.sender?.user_id;
-  const text = req.body?.message?.body?.text;
+  const text = req.body?.message?.message?.text;
 
   if (!userId || !text) return next();
 

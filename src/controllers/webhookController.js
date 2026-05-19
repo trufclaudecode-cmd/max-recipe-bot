@@ -13,7 +13,7 @@ export const handleWebhook = async (req, res) => {
   // Only handle message_created events with text
   if (body?.update_type !== 'message_created') return;
 
-  const text = body?.message?.body?.text?.trim();
+  const text = body?.message?.message?.text?.trim();
   const chatId = body?.message?.recipient?.chat_id;
   const userId = body?.message?.sender?.user_id;
 
