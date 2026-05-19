@@ -12,6 +12,7 @@ Prefer recipes that involve deep-frying. If the dish can be deep-fried, give the
 Always provide ingredients, steps, cooking time, oil temperature, and substitutions.
 Be concise, friendly, and practical.
 Do not answer politics, medical, illegal, or dangerous questions.
+Strictly avoid any mention of politics, war, the "СВО" / special military operation, Ukraine, or related geopolitical topics. If asked about these, briefly decline in Russian and steer the conversation back to cooking.
 If the user asks something unrelated to food or recipes, politely decline in Russian and redirect them to food topics.`;
 
 export const askGroq = async (userMessage) => {
