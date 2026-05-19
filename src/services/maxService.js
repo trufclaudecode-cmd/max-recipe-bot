@@ -10,8 +10,10 @@ export const MENU_KEYBOARD = [
     payload: {
       buttons: [
         [{ type: 'callback', text: 'Случайное блюдо', payload: 'random' }],
-        [{ type: 'callback', text: 'Перезапуск', payload: 'restart' }],
-        [{ type: 'callback', text: 'Связаться с нами', payload: 'contact' }],
+        [
+          { type: 'callback', text: 'Перезапуск', payload: 'restart' },
+          { type: 'callback', text: 'Связаться с нами', payload: 'contact' },
+        ],
       ],
     },
   },
