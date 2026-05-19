@@ -18,6 +18,10 @@ setInterval(() => {
 }, 5 * 60 * 1000);
 
 export const antiSpam = (req, res, next) => {
+  // Only throttle real user messages. Callbacks/system events pass through —
+  // their body.message holds the bot's own prior message, not user input.
+  if (req.body?.update_type !== 'message_created') return next();
+
   const userId = req.body?.message?.sender?.user_id;
   const text = req.body?.message?.message?.text;
 
