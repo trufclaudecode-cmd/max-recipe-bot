@@ -12,7 +12,7 @@ export const config = {
   groqApiKey: required('GROQ_API_KEY'),
   maxBotToken: required('MAX_BOT_TOKEN'),
   maxWebhookSecret: process.env.MAX_WEBHOOK_SECRET || '',
-  groqModel: 'mixtral-8x7b-32768',
+  groqModel: 'llama-3.3-70b-versatile',
   groqMaxRetries: 3,
   rateLimit: {
     windowMs: 60 * 1000,
