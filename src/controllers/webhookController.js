@@ -21,6 +21,22 @@ const RANDOM_PROMPT = 'Предложи случайное блюдо во фр�
 const userLastTime = new Map();
 const userLastMessage = new Map();
 
+// Callback cooldown — prevents double-tap while Groq is thinking
+const callbackLastTime = new Map();
+const CALLBACK_COOLDOWN_MS = 15000;
+
+const checkCallbackSpam = (userId, payload) => {
+  if (!userId) return true;
+  const key = `${userId}:${payload}`;
+  const now = Date.now();
+  if (now - (callbackLastTime.get(key) || 0) < CALLBACK_COOLDOWN_MS) {
+    logger.warn('Anti-spam: callback cooldown', { userId, payload });
+    return false;
+  }
+  callbackLastTime.set(key, now);
+  return true;
+};
+
 const checkAntiSpam = (userId, text) => {
   if (!userId || !text) return true;
   const now = Date.now();
@@ -58,6 +74,7 @@ const handleCallback = async (chatId, payload, userId) => {
     return;
   }
   if (payload === 'random') {
+    await sendMessage(chatId, '⏳ Генерирую рецепт...');
     const reply = await askGroq(RANDOM_PROMPT);
     await replyWithMenu(chatId, reply);
   }
@@ -71,6 +88,7 @@ export const handleWebhookEvent = async (body) => {
     const payload = body?.callback?.payload;
     const userId = body?.callback?.user?.user_id;
     if (!chatId || !payload) return;
+    if (!checkCallbackSpam(userId, payload)) return;
     try {
       await handleCallback(chatId, payload, userId);
       logger.info('Callback handled', { userId, chatId, payload });
