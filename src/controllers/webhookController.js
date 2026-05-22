@@ -1,4 +1,3 @@
-// src/controllers/webhookController.js
 import { askGroq } from '../services/groqService.js';
 import { sendMessage, MENU_KEYBOARD } from '../services/maxService.js';
 import { logger } from '../utils/logger.js';
@@ -18,35 +17,53 @@ Telegram: @example
 
 const RANDOM_PROMPT = 'Предложи случайное блюдо во фритюре и дай его рецепт.';
 
+// In-memory anti-spam (resets on cold start — acceptable for this bot)
+const userLastTime = new Map();
+const userLastMessage = new Map();
+
+const checkAntiSpam = (userId, text) => {
+  if (!userId || !text) return true;
+  const now = Date.now();
+  const lastTime = userLastTime.get(userId) || 0;
+  const lastMsg = userLastMessage.get(userId) || '';
+  if (now - lastTime < config.antiSpam.cooldownMs) {
+    logger.warn('Anti-spam: cooldown active', { userId });
+    return false;
+  }
+  if (text === lastMsg) {
+    logger.warn('Anti-spam: duplicate message', { userId });
+    return false;
+  }
+  if (text.length > config.antiSpam.maxMessageLength) {
+    logger.warn('Anti-spam: message too long', { userId, length: text.length });
+    return false;
+  }
+  userLastTime.set(userId, now);
+  userLastMessage.set(userId, text);
+  return true;
+};
+
 const replyWithMenu = async (chatId, text) => {
   await sendMessage(chatId, text, MENU_KEYBOARD);
 };
 
 const handleCallback = async (chatId, payload, userId) => {
   logger.info('Callback pressed', { userId, chatId, payload });
-
   if (payload === 'restart') {
     await replyWithMenu(chatId, WELCOME_TEXT);
     return;
   }
-
   if (payload === 'contact') {
     await replyWithMenu(chatId, CONTACT_TEXT);
     return;
   }
-
   if (payload === 'random') {
     const reply = await askGroq(RANDOM_PROMPT);
     await replyWithMenu(chatId, reply);
-    return;
   }
 };
 
-export const handleWebhook = async (req, res) => {
-  // Always respond 200 immediately so MAX doesn't retry
-  res.status(200).json({ ok: true });
-
-  const body = req.body;
+export const handleWebhookEvent = async (body) => {
   const updateType = body?.update_type;
 
   if (updateType === 'message_callback') {
@@ -54,17 +71,12 @@ export const handleWebhook = async (req, res) => {
     const payload = body?.callback?.payload;
     const userId = body?.callback?.user?.user_id;
     if (!chatId || !payload) return;
-
     try {
       await handleCallback(chatId, payload, userId);
       logger.info('Callback handled', { userId, chatId, payload });
     } catch (err) {
       logger.error('Failed to handle callback', { userId, chatId, payload, error: err.message });
-      try {
-        await replyWithMenu(chatId, 'Извините, произошла ошибка. Попробуйте ещё раз.');
-      } catch {
-        // Silently ignore send failure
-      }
+      try { await replyWithMenu(chatId, 'Извините, произошла ошибка. Попробуйте ещё раз.'); } catch {}
     }
     return;
   }
@@ -87,21 +99,25 @@ export const handleWebhook = async (req, res) => {
   const userId = body?.message?.sender?.user_id;
 
   if (!text || !chatId) return;
+  if (!checkAntiSpam(userId, text)) return;
 
   logger.info('Incoming message', { userId, chatId, textLength: text.length });
-
   try {
     const reply = await askGroq(text);
     await replyWithMenu(chatId, reply);
     logger.info('Reply sent', { userId, chatId });
   } catch (err) {
     logger.error('Failed to process message', { userId, chatId, error: err.message });
-    try {
-      await replyWithMenu(chatId, 'Извините, не удалось сгенерировать рецепт. Попробуйте ещё раз.');
-    } catch {
-      // Silently ignore send failure
-    }
+    try { await replyWithMenu(chatId, 'Извините, не удалось сгенерировать рецепт. Попробуйте ещё раз.'); } catch {}
   }
+};
+
+// Express handler — kept for local dev only
+export const handleWebhook = async (req, res) => {
+  res.status(200).json({ ok: true });
+  handleWebhookEvent(req.body).catch(err => {
+    logger.error('Webhook event error', { error: err.message });
+  });
 };
 
 export const handleWebhookVerification = (req, res) => {
